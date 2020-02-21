@@ -14,17 +14,9 @@ func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetLevel(log.DebugLevel)
 	log.SetOutput(os.Stdout)
-	log.SetReportCaller(true)
 }
 
 func main() {
-	/* file, err := os.OpenFile("sidecar-security.log", os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.SetOutput(os.Stdout)
-	} else {
-		log.SetOutput(file)
-		defer file.Close()
-	} */
 	log.Info("sidecar security starting...")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", invoke)
