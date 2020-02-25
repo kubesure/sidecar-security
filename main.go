@@ -5,42 +5,37 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/julienschmidt/httprouter"
+	"github.com/kubesure/sidecar-security/proxy"
+	"github.com/sirupsen/logrus"
 )
 
 func init() {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetLevel(log.DebugLevel)
-	log.SetOutput(os.Stdout)
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.InfoLevel)
 }
 
 func main() {
-	log.Info("sidecar security starting...")
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", invoke)
-	srv := http.Server{Addr: ":8000", Handler: mux}
+
+	router := httprouter.New()
+	proxy.SetupProxy(router)
+
+	srv := http.Server{Addr: ":8001", Handler: router}
 	ctx := context.Background()
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
 	go func() {
 		for range c {
-			log.Info("shutting down sidecar security...")
+			logrus.Info("shutting down sidecar security...")
 			srv.Shutdown(ctx)
 			<-ctx.Done()
 		}
 	}()
-	log.Info("security sidecar started...")
+	logrus.Info("security sidecar started...")
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatalf("ListenAndServe(): %s", err)
+		logrus.Fatalf("ListenAndServe(): %s", err)
 	}
-}
-
-func invoke(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
-	data := (time.Now()).String()
-	log.Debug("Invoked....")
-	w.Write([]byte(data))
 }
