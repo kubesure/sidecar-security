@@ -14,9 +14,6 @@ var Configurations = []Config{
 		Method: "POST",
 	},
 	Config{
-		Method: "UPDATE",
-	},
-	Config{
 		Method: "PUT",
 	},
 	Config{

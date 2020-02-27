@@ -6,13 +6,13 @@ import (
 	"net/url"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/kubesure/sidecar-security/middleware"
+	m "github.com/kubesure/sidecar-security/middleware"
 	"github.com/kubesure/sidecar-security/routing"
 )
 
 //SetupProxy configures reverse proxies
 func SetupProxy(router *httprouter.Router) {
-	origin, _ := url.Parse("http://localhost:9000/")
+	origin, _ := url.Parse("http://localhost:80")
 	path := "/*catchall"
 
 	proxy := httputil.NewSingleHostReverseProxy(origin)
@@ -24,6 +24,6 @@ func SetupProxy(router *httprouter.Router) {
 	}
 
 	for _, config := range routing.Configurations {
-		router.Handler(config.Method, path, middleware.Logger(middleware.Auth(middleware.Final(proxy))))
+		router.Handler(config.Method, path, m.Logger(m.Auth(m.Final(proxy))))
 	}
 }

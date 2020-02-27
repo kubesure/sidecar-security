@@ -8,13 +8,13 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubesure/sidecar-security/proxy"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logrus.SetOutput(os.Stdout)
-	logrus.SetLevel(logrus.InfoLevel)
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
 }
 
 func main() {
@@ -29,13 +29,13 @@ func main() {
 
 	go func() {
 		for range c {
-			logrus.Info("shutting down sidecar security...")
+			log.Info("shutting down sidecar security...")
 			srv.Shutdown(ctx)
 			<-ctx.Done()
 		}
 	}()
-	logrus.Info("security sidecar started...")
+	log.Info("security sidecar started...")
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-		logrus.Fatalf("ListenAndServe(): %s", err)
+		log.Fatalf("ListenAndServe(): %s", err)
 	}
 }
