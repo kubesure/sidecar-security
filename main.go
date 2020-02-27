@@ -22,7 +22,7 @@ func main() {
 	router := httprouter.New()
 	proxy.SetupProxy(router)
 
-	srv := http.Server{Addr: ":8001", Handler: router}
+	srv := http.Server{Addr: ":8000", Handler: router}
 	ctx := context.Background()
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sidecar-security
+  name: sidecar-security
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sidecar-security
+  template:
+    metadata:
+      labels:
+        app: sidecar-security
+    spec:
+      containers:
+      - image: bikertales/sidecar-security:34c993c3a93cb572bc79ce36cc168136e941124b
+        name: sidecar-security
+      - image: kennethreitz/httpbin
+        name: origin-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sidecar-security
+  name: origin-httpbin
+spec:
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: sidecar-security
+      
