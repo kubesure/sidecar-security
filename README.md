@@ -1,10 +1,10 @@
 # sidecar-security
 
-Security sidecar forwards authenticated http/REST request to origin. The sidecar is a reverse proxy forwarding all requests to origin on port 80.      
+Security sidecar forwards authenticated http/REST request to origin. The sidecar is a proxy forwarding all requests to origin on port 80.
 
-### Deploying sample sidecar in Kubernetes 
+### Deploy sample serivce POD (sidecare + origin service app) in Kubernetes 
 
-This example deploys the sidecare with origin as https://httpbin.org in primary app container.
+This example deploys the sidecare with origin as https://httpbin.org. 
 
 ```
 kubectl apply -f deploy/deployment.yaml
@@ -18,7 +18,7 @@ Deploy the test curl client in cluster
 kubectl run curl --image=radial/busyboxplus:curl -i --tty 
 ```
 
-Note cluster IP of deployed Sidecar service
+Note the cluster IP of deployed Sidecar service
 
 ```
 kubectl get svc origin-httpbin
@@ -135,3 +135,9 @@ curl -v -H "user: foobar" http://origin-httpbin:8000/anything
 < 
 
 ```
+
+### Building from source 
+
+1. Clone repo
+2. change TAG_HUB to your container repp. 
+3. run ```make dpush```
