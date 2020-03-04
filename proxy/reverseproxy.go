@@ -24,6 +24,6 @@ func SetupProxy(router *httprouter.Router) {
 	}
 
 	for _, config := range routing.Configurations {
-		router.Handler(config.Method, path, m.Logger(m.Auth(m.Final(proxy))))
+		router.Handler(config.Method, path, m.Logger(m.FraudChecker(m.Auth(m.Final(proxy)))))
 	}
 }
