@@ -17,8 +17,10 @@ spec:
       containers:
       - image: bikertales/sidecar-security:34c993c3a93cb572bc79ce36cc168136e941124b
         name: sidecar-security
+        imagePullPolicy: IfNotPresent 
       - image: kennethreitz/httpbin
         name: origin-service
+        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service
