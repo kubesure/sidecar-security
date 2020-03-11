@@ -1,18 +1,28 @@
 package middleware
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"os"
 
+	api "github.com/kubesure/sidecar-security/api"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
+
+var customerDataSvc = os.Getenv("CUSTOMER_DATA_SVC")
 
 func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
+}
+
+type Customer struct {
+	accountNumer string
+	CIF          int64
 }
 
 //FraudCheck message is sent to fraud checker to run fraud checks on the request.
@@ -102,4 +112,21 @@ func FraudChecker(next http.Handler) http.Handler {
 func makeTCPMessage(r *http.Request) (*string, error) {
 	message := string("smh_seg_id_version:000004|smh_source:")
 	return &message, nil
+}
+
+func customerData(c *Customer) (*Customer, error) {
+	conn, err := grpc.Dial(customerDataSvc+":50051", grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	grpcClient := api.NewCustomerClient(conn)
+	req := &api.CustomerRequest{Version: "v1", AccountNumber: "12345"}
+	res, rpcerr := grpcClient.GetCustomer(context.Background(), req)
+	if rpcerr != nil {
+		return nil, err
+	}
+
+	c.CIF = res.CIF
+	return c, nil
 }

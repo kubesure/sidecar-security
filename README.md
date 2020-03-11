@@ -141,3 +141,9 @@ curl -v -H "user: foobar" http://origin-httpbin:8000/anything
 1. Clone repo
 2. change TAG_HUB to your container repp. 
 3. run ```make dpush```
+
+### Generate proto client
+
+```
+  protoc --proto_path=./api --go_out=plugins=grpc:./api ./api/customer.proto
+```

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_package = "io.kubesure.sidecar.security.data";
+option java_outer_classname = "SidecarProtos";
+
+service Customer {
+  rpc getCustomer(CustomerRequest) returns (CustomerResponse);
+}
+
+message CustomerRequest { 
+  string version = 1;
+  string accountNumber = 2;
+}
+
+message CustomerResponse {
+  bool ok = 1;
+  int64 CIF = 2;
+  string name = 3; 
+}
