@@ -11,12 +11,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//Initializes logurs with info level
 func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
 }
 
+//Initializes a http request router and starts the sidecar and listens port 8000
+//Shuts down the sidecar gracefully on a os interrupt.
 func main() {
 
 	router := httprouter.New()
