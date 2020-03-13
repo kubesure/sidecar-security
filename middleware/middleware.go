@@ -47,6 +47,14 @@ type fraudCheckRes struct {
 	isOk bool
 }
 
+//TimeoutHandler is a customer timeout handler which return 504 when
+//middlewares or origin does not respond with http.Server.WriteTimeout
+func TimeoutHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusGatewayTimeout)
+	})
+}
+
 //Logger middleware logs orgin's request
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

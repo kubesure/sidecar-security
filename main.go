@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/kubesure/sidecar-security/proxy"
@@ -25,7 +26,12 @@ func main() {
 	router := httprouter.New()
 	proxy.SetupProxy(router)
 
-	srv := http.Server{Addr: ":8000", Handler: router}
+	srv := http.Server{
+		Addr:         ":8000",
+		Handler:      http.TimeoutHandler(router, 1*time.Second, "Timeout!!"),
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 2 * time.Second,
+	}
 	ctx := context.Background()
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
