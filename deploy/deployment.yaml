@@ -15,12 +15,20 @@ spec:
         app: sidecar-security
     spec:
       containers:
-      - image: bikertales/sidecar-security:34c993c3a93cb572bc79ce36cc168136e941124b
+      - image: bikertales/sidecar-security:6652c1a1785244536e1d134bb78269878ac7a732
         name: sidecar-security
-        imagePullPolicy: IfNotPresent 
+        imagePullPolicy: Always
+        env: 
+        - name: CUSTOMER_DATA_SVC
+          value: sidecar-security-data-svc
+        - name: CUSTOMER_DATA_SVC_Port
+          value: "50051"  
+        - name: FRAUD_CHECK_SVC
+          value: fraud-check-svc
+        - name: FRAUD_CHECK_SVC_Port
+          value: "8090"  
       - image: kennethreitz/httpbin
         name: origin-service
-        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service
@@ -34,5 +42,4 @@ spec:
     protocol: TCP
     targetPort: 8000
   selector:
-    app: sidecar-security
-      
+    app: sidecar-security   

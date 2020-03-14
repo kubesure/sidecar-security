@@ -110,9 +110,9 @@ func FraudChecker(next http.Handler) http.Handler {
 			return
 		}
 
-		conn, cerr := fraudSrvConn()
-		if cerr != nil {
-			log.Errorf("Error while connecting to Fraud Server")
+		conn, ferr := fraudSrvConn()
+		if ferr != nil {
+			log.Errorf("Error while connecting to Fraud Server %v", cerr)
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -211,6 +211,9 @@ func fraudSrvConn() (net.Conn, error) {
 	if len(fraudCheckTCPSvcPort) == 0 {
 		fraudCheckTCPSvcPort = "8090"
 	}
+
+	log.Infof("connecting to fraud server %v", fraudCheckTCPSvc+":"+fraudCheckTCPSvcPort)
+
 	d := net.Dialer{Timeout: 2 * time.Second}
 	conn, cerr := d.Dial("tcp", fraudCheckTCPSvc+":"+fraudCheckTCPSvcPort)
 	if cerr != nil {
