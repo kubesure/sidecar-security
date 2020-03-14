@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -52,6 +53,30 @@ func makeMockProxyRequest() *http.Request {
 	r := httptest.NewRequest("GET", "/", strings.NewReader(mockBody))
 	r.Header.Add("foo", "bar")
 	return r
+}
+
+func TestGrpcConnWithoutEnv(t *testing.T) {
+	conn, err := cdataGrpcSrvConn()
+	if err != nil {
+		t.Logf("some error %v", err)
+	}
+	if conn == nil {
+		log.Fatalf("Conn not established")
+	}
+	t.Logf("Conn created")
+	conn.Close()
+}
+
+func TestFraudConnWithoutEnv(t *testing.T) {
+	conn, err := fraudSrvConn()
+	if err != nil {
+		t.Logf("some error %v", err)
+	}
+	if conn == nil {
+		log.Fatalf("Conn not established")
+	}
+	t.Logf("Conn created")
+	conn.Close()
 }
 
 //reference code

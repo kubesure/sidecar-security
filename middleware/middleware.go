@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"time"
 
 	api "github.com/kubesure/sidecar-security/api"
 	log "github.com/sirupsen/logrus"
@@ -14,7 +15,9 @@ import (
 )
 
 var customerDataSvc = os.Getenv("CUSTOMER_DATA_SVC")
-var fraudCheckTCPSvc = os.Getenv("CUSTOMER_DATA_SVC")
+var customerDataSvcPort = os.Getenv("CUSTOMER_DATA_SVC_Port")
+var fraudCheckTCPSvc = os.Getenv("FRAUD_CHECK_SVC")
+var fraudCheckTCPSvcPort = os.Getenv("FRAUD_CHECK_SVC_Port")
 
 //initializes logurs with info level
 func init() {
@@ -107,15 +110,13 @@ func FraudChecker(next http.Handler) http.Handler {
 			return
 		}
 
-		//Create a TCP connection to Fraud checking service
-		conn, cerr := net.Dial("tcp", fraudCheckTCPSvc+":8080")
-		defer conn.Close()
+		conn, cerr := fraudSrvConn()
 		if cerr != nil {
 			log.Errorf("Error while connecting to Fraud Server")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
-
+		defer conn.Close()
 		_, werr := conn.Write([]byte(*msg))
 		if werr != nil {
 			log.Errorf("Error while sending message to TCP server %v", werr)
@@ -131,7 +132,7 @@ func FraudChecker(next http.Handler) http.Handler {
 			return
 		}
 
-		//Parse response Fraud service
+		//Parse response from fraud check service
 		fcheck, ferr := parseFTCPResponse(string(tcpmsg))
 		if ferr != nil {
 			log.Errorf("Error while reading message to TCP server %v", rerr)
@@ -158,15 +159,15 @@ func makeFTCPMessage(r *http.Request, c *Customer) (*string, error) {
 
 //Pulls customer data from Customer.getCustomer GRCP service
 func customerData(r *http.Request) (*Customer, error) {
-	conn, err := grpc.Dial(customerDataSvc+":50051", grpc.WithInsecure())
-	if err != nil {
-		return nil, err
+	conn, derr := cdataGrpcSrvConn()
+	if derr != nil {
+		return nil, derr
 	}
 	defer conn.Close()
 	client := api.NewCustomerClient(conn)
-	customer, err := makeCustomerData(r, client)
-	if err != nil {
-		return nil, err
+	customer, merr := makeCustomerData(r, client)
+	if merr != nil {
+		return nil, merr
 	}
 	return customer, nil
 }
@@ -175,10 +176,10 @@ func customerData(r *http.Request) (*Customer, error) {
 //read from request header and body. Grpc service return datas cached in a in transient store.
 func makeCustomerData(r *http.Request, client api.CustomerClient) (*Customer, error) {
 	req := &api.CustomerRequest{Version: "v1", AccountNumber: "12345"}
-	res, err := client.GetCustomer(context.Background(), req)
+	res, cerr := client.GetCustomer(context.Background(), req)
 
-	if err != nil {
-		return nil, err
+	if cerr != nil {
+		return nil, cerr
 	}
 	c := &Customer{}
 	c.CIF = res.CIF
@@ -189,4 +190,31 @@ func makeCustomerData(r *http.Request, client api.CustomerClient) (*Customer, er
 func parseFTCPResponse(msg string) (*fraudCheckRes, error) {
 	log.Infof("parsing %v", msg)
 	return &fraudCheckRes{isOk: true}, nil
+}
+
+//Create a GRPC connection to Customer Data Service
+func cdataGrpcSrvConn() (*grpc.ClientConn, error) {
+	//Change to return error instead of defaulting
+	if len(customerDataSvcPort) == 0 {
+		customerDataSvcPort = "50051"
+	}
+	conn, derr := grpc.Dial(customerDataSvc+":"+customerDataSvcPort, grpc.WithInsecure())
+	if derr != nil {
+		return nil, derr
+	}
+	return conn, nil
+}
+
+//Create a TCP connection to Fraud checking service
+func fraudSrvConn() (net.Conn, error) {
+	//Change to return error instead of defaulting
+	if len(fraudCheckTCPSvcPort) == 0 {
+		fraudCheckTCPSvcPort = "8090"
+	}
+	d := net.Dialer{Timeout: 2 * time.Second}
+	conn, cerr := d.Dial("tcp", fraudCheckTCPSvc+":"+fraudCheckTCPSvcPort)
+	if cerr != nil {
+		return nil, cerr
+	}
+	return conn, nil
 }
